@@ -34,13 +34,13 @@ export async function writeBlockInputToDb(
     });
 
     if (type === BlockInputType.postDeneb) {
-      const {blobs} = blockInput;
+      const {blobs: blobSidecars} = blockInput;
       // NOTE: Old blobs are pruned on archive
-      fnPromises.push(this.db.blobsSidecar.add(blobs));
-      this.logger.debug("Persist blobsSidecar to hot DB", {
-        blobsLen: blobs.blobs.length,
-        slot: blobs.beaconBlockSlot,
-        root: toHex(blobs.beaconBlockRoot),
+      fnPromises.push(this.db.blobSidecars.add({blockRoot, slot: block.message.slot, blobSidecars}));
+      this.logger.debug("Persisted blobSidecars to hot DB", {
+        blobsLen: blobSidecars.length,
+        slot: block.message.slot,
+        root: blockRootHex,
       });
     }
   }
@@ -56,19 +56,18 @@ export async function removeEagerlyPersistedBlockInputs(
   blockInputs: WithOptionalBytes<BlockInput>[]
 ): Promise<void> {
   const blockToRemove: allForks.SignedBeaconBlock[] = [];
-  const blobsToRemove: deneb.BlobsSidecar[] = [];
+  const blobsToRemove: deneb.BlobSidecarsWrapper[] = [];
 
   for (const blockInput of blockInputs) {
     const {block, type} = blockInput;
-    const blockRoot = toHex(this.config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message));
-    if (!this.forkChoice.hasBlockHex(blockRoot)) {
+    const blockRoot = this.config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
+    const blockRootHex = toHex(blockRoot);
+    if (!this.forkChoice.hasBlockHex(blockRootHex)) {
       blockToRemove.push(block);
 
       if (type === BlockInputType.postDeneb) {
-        blobsToRemove.push(blockInput.blobs);
-        this.db.blobsSidecar.remove(blockInput.blobs).catch((e) => {
-          this.logger.verbose("Error removing eagerly imported blobsSidecar", {blockRoot}, e);
-        });
+        const blobSidecars = blockInput.blobs;
+        blobsToRemove.push({blockRoot, slot: block.message.slot, blobSidecars});
       }
     }
   }
@@ -76,6 +75,6 @@ export async function removeEagerlyPersistedBlockInputs(
   await Promise.all([
     // TODO: Batch DB operations not with Promise.all but with level db ops
     this.db.block.batchRemove(blockToRemove),
-    this.db.blobsSidecar.batchRemove(blobsToRemove),
+    this.db.blobSidecars.batchRemove(blobsToRemove),
   ]);
 }
