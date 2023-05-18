@@ -8,7 +8,7 @@ import {
 import {computeTimeAtSlot} from "@lodestar/state-transition";
 import {SLOTS_PER_HISTORICAL_ROOT} from "@lodestar/params";
 import {sleep} from "@lodestar/utils";
-import {allForks, deneb} from "@lodestar/types";
+import {allForks, deneb, isSignedBlockContents, isSignedBlindedBlockContents} from "@lodestar/types";
 import {fromHexString, toHexString} from "@chainsafe/ssz";
 import {BlockSource, getBlockInput, ImportBlockOpts, BlockInput} from "../../../../chain/blocks/types.js";
 import {promiseAllMaybeAsync} from "../../../../util/promises.js";
