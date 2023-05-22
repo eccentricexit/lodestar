@@ -36,7 +36,7 @@ describe("C-KZG", async () => {
     expect(ckzg.verifyBlobKzgProofBatch(blobs, commitments, proofs)).to.equal(true);
   });
 
-  it("BlobsSidecar", async () => {
+  it("BlobSidecars", async () => {
     const bn = await getDevBeaconNode({
       params: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -77,18 +77,9 @@ describe("C-KZG", async () => {
       };
     });
 
-    const signedBlobSidecars: deneb.SignedBlobSidecar[] = blobs.map((blob, index) => {
+    const signedBlobSidecars: deneb.SignedBlobSidecar[] = blobSidecars.map((blobSidecar) => {
       const signedBlobSidecar = ssz.deneb.SignedBlobSidecar.defaultValue();
-      signedBlobSidecar.message = {
-        blockRoot,
-        index,
-        slot,
-        blob,
-        kzgProof: ckzg.computeBlobKzgProof(blob, kzgCommitments[index]),
-        kzgCommitment: kzgCommitments[index],
-        blockParentRoot: Buffer.alloc(32),
-        proposerIndex: 0,
-      };
+      signedBlobSidecar.message = blobSidecar;
       return signedBlobSidecar;
     });
 

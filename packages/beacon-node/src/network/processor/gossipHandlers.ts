@@ -200,7 +200,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
       .processBlock(blockInput, {
         // proposer signature already checked in validateBeaconBlock()
         validProposerSignature: true,
-        // blobsSidecar needs to be validated for block
+        // blobSidecars needs to be validated for block
         validBlobSidecars: true,
         // It's critical to keep a good number of mesh peers.
         // To do that, the Gossip Job Wait Time should be consistently <3s to avoid the behavior penalties in gossip

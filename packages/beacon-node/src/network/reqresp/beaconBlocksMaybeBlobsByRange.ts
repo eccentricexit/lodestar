@@ -106,7 +106,7 @@ export function matchBlockWithBlobs(
     throw Error(
       `Unmatched blobSidecars, blocks=${allBlocks.length}, blobs=${
         allBlobSidecars.length
-      } lastMatchedSlot=${lastMatchedSlot}, pending blobsSidecars slots=${allBlobSidecars
+      } lastMatchedSlot=${lastMatchedSlot}, pending blobSidecars slots=${allBlobSidecars
         .slice(blobSideCarIndex)
         .map((blb) => blb.slot)}`
     );

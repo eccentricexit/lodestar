@@ -372,11 +372,11 @@ describe("executionEngine / ExecutionEngineHttp", function () {
 async function retrieveCanonicalBlobs(bn: BeaconNode, fromSlot: Slot, toSlot: Slot): Promise<number> {
   let eip4844Blobs = 0;
   for (let slot = fromSlot; slot <= toSlot; slot++) {
-    const blobsSideCar = await bn.api.beacon.getBlobSidecars(slot).catch((_e: Error) => {
+    const blobSideCars = await bn.api.beacon.getBlobSidecars(slot).catch((_e: Error) => {
       return null;
     });
-    if (blobsSideCar) {
-      eip4844Blobs += blobsSideCar.data.length;
+    if (blobSideCars) {
+      eip4844Blobs += blobSideCars.data.length;
     }
   }
 
