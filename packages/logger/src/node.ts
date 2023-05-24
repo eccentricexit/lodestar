@@ -104,7 +104,7 @@ function getNodeLoggerTransports(opts: LoggerNodeOpts): winston.transport[] {
             handleExceptions: true,
             maxFiles: opts.file.dailyRotate,
             auditFile: path.join(path.dirname(filename), ".log_rotate_audit.json"),
-          })
+          }).setMaxListeners(20)
         : new winston.transports.File({
             level: opts.file.level,
             filename: filename,
