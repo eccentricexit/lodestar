@@ -19,7 +19,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
 
   for (const block of allBlocks) {
     const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
-    const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length ?? 0;
+    const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments?.length ?? 0;
     for (let index = 0; index < blobKzgCommitmentsLen; index++) {
       blobIdentifiers.push({blockRoot, index});
     }

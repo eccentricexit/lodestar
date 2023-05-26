@@ -1,6 +1,8 @@
 import {expect} from "chai";
 import {bellatrix, deneb, ssz} from "@lodestar/types";
 import {BLOB_TX_TYPE, BYTES_PER_FIELD_ELEMENT} from "@lodestar/params";
+import {config} from "@lodestar/config/default";
+import {createBeaconConfig} from "@lodestar/config";
 import {
   kzgCommitmentToVersionedHash,
   OPAQUE_TX_BLOB_VERSIONED_HASHES_OFFSET,
@@ -9,7 +11,8 @@ import {
 
 import {loadEthereumTrustedSetup, initCKZG, ckzg, FIELD_ELEMENTS_PER_BLOB_MAINNET} from "../../../src/util/kzg.js";
 import {validateBlobSidecars, validateGossipBlobSidecar} from "../../../src/chain/validation/blobSidecar.js";
-import {getDevBeaconNode} from "../../utils/node/beacon.js";
+import {generateState} from "../../utils/state.js";
+import {MockBeaconChain} from "../../utils/mocks/chain/chain.js";
 
 describe("C-KZG", async () => {
   const afterEachCallbacks: (() => Promise<unknown> | void)[] = [];
@@ -37,20 +40,24 @@ describe("C-KZG", async () => {
   });
 
   it("BlobSidecars", async () => {
-    const bn = await getDevBeaconNode({
-      params: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        ALTAIR_FORK_EPOCH: 0,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        BELLATRIX_FORK_EPOCH: 0,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        CAPELLA_FORK_EPOCH: 0,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        DENEB_FORK_EPOCH: 0,
+    const block = ssz.phase0.SignedBeaconBlock.defaultValue();
+    const state = generateState({
+      finalizedCheckpoint: {
+        epoch: 0,
+        root: ssz.phase0.BeaconBlock.hashTreeRoot(block.message),
       },
     });
 
-    afterEachCallbacks.push(() => bn.close());
+    const beaconConfig = createBeaconConfig(config, state.genesisValidatorsRoot);
+    const chain = new MockBeaconChain({
+      genesisTime: 0,
+      chainId: 0,
+      networkId: BigInt(0),
+      state,
+      config: beaconConfig,
+    });
+
+    afterEachCallbacks.push(() => chain.close());
 
     const slot = 0;
     const blobs = [generateRandomBlob(), generateRandomBlob()];
@@ -93,7 +100,7 @@ describe("C-KZG", async () => {
     );
 
     signedBlobSidecars.forEach(async (signedBlobSidecar) => {
-      await validateGossipBlobSidecar(bn.config, bn.chain, signedBlobSidecar, signedBlobSidecar.message.index);
+      await validateGossipBlobSidecar(chain.config, chain, signedBlobSidecar, signedBlobSidecar.message.index);
     });
   });
 });
